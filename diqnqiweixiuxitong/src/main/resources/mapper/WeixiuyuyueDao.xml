@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.WeixiuyuyueDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yonghu_id as yonghuId
+        ,a.weixiuyuan_id as weixiuyuanId
+        ,a.weixiuyuyue_name as weixiuyuyueName
+        ,a.weixiuyuyue_uuid_number as weixiuyuyueUuidNumber
+        ,a.weixiuyuyue_photo as weixiuyuyuePhoto
+        ,a.weixiuyuyue_types as weixiuyuyueTypes
+        ,a.yuyue_time as yuyueTime
+        ,a.weixiuyuyue_content as weixiuyuyueContent
+        ,a.insert_time as insertTime
+        ,a.weixiuyuyue_yesno_types as weixiuyuyueYesnoTypes
+        ,a.weixiuyuyue_yesno_text as weixiuyuyueYesnoText
+        ,a.weixiuyuyue_shenhe_time as weixiuyuyueShenheTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.WeixiuyuyueView" >
+        SELECT
+        <include refid="Base_Column_List" />
+        <!-- 级联表的字段 -->
+        ,weixiuyuan.weixiuyuan_name as weixiuyuanName
+        ,weixiuyuan.weixiuyuan_phone as weixiuyuanPhone
+        ,weixiuyuan.weixiuyuan_id_number as weixiuyuanIdNumber
+        ,weixiuyuan.weixiuyuan_photo as weixiuyuanPhoto
+        ,weixiuyuan.weixiuyuan_email as weixiuyuanEmail
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.new_money as newMoney
+        ,yonghu.yonghu_email as yonghuEmail
+
+        FROM weixiuyuyue  a
+        left JOIN weixiuyuan weixiuyuan ON a.weixiuyuan_id = weixiuyuan.id
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.weixiuyuanId != null and params.weixiuyuanId != ''">
+                and (
+                    a.weixiuyuan_id = #{params.weixiuyuanId} or a.weixiuyuan_id is null
+                )
+            </if>
+            <if test=" params.weixiuyuyueName != '' and params.weixiuyuyueName != null and params.weixiuyuyueName != 'null' ">
+                and a.weixiuyuyue_name like CONCAT('%',#{params.weixiuyuyueName},'%')
+            </if>
+            <if test=" params.weixiuyuyueUuidNumber != '' and params.weixiuyuyueUuidNumber != null and params.weixiuyuyueUuidNumber != 'null' ">
+                and a.weixiuyuyue_uuid_number like CONCAT('%',#{params.weixiuyuyueUuidNumber},'%')
+            </if>
+            <if test="params.weixiuyuyueTypes != null and params.weixiuyuyueTypes != ''">
+                and a.weixiuyuyue_types = #{params.weixiuyuyueTypes}
+            </if>
+            <if test=" params.yuyueTimeStart != '' and params.yuyueTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.yuyue_time) >= UNIX_TIMESTAMP(#{params.yuyueTimeStart}) ]]>
+            </if>
+            <if test=" params.yuyueTimeEnd != '' and params.yuyueTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.yuyue_time) <= UNIX_TIMESTAMP(#{params.yuyueTimeEnd}) ]]>
+            </if>
+            <if test=" params.weixiuyuyueContent != '' and params.weixiuyuyueContent != null and params.weixiuyuyueContent != 'null' ">
+                and a.weixiuyuyue_content like CONCAT('%',#{params.weixiuyuyueContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+            <if test="params.weixiuyuyueYesnoTypes != null and params.weixiuyuyueYesnoTypes != ''">
+                and a.weixiuyuyue_yesno_types = #{params.weixiuyuyueYesnoTypes}
+            </if>
+            <if test=" params.weixiuyuyueYesnoText != '' and params.weixiuyuyueYesnoText != null and params.weixiuyuyueYesnoText != 'null' ">
+                and a.weixiuyuyue_yesno_text like CONCAT('%',#{params.weixiuyuyueYesnoText},'%')
+            </if>
+            <if test=" params.weixiuyuyueShenheTimeStart != '' and params.weixiuyuyueShenheTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.weixiuyuyue_shenhe_time) >= UNIX_TIMESTAMP(#{params.weixiuyuyueShenheTimeStart}) ]]>
+            </if>
+            <if test=" params.weixiuyuyueShenheTimeEnd != '' and params.weixiuyuyueShenheTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.weixiuyuyue_shenhe_time) <= UNIX_TIMESTAMP(#{params.weixiuyuyueShenheTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断维修员的id不为空 -->
+            <if test=" params.weixiuyuanIdNotNull != '' and params.weixiuyuanIdNotNull != null and params.weixiuyuanIdNotNull != 'null' ">
+                and a.weixiuyuan_id IS NOT NULL
+            </if>
+            <if test=" params.weixiuyuanName != '' and params.weixiuyuanName != null and params.weixiuyuanName != 'null' ">
+                and weixiuyuan.weixiuyuan_name like CONCAT('%',#{params.weixiuyuanName},'%')
+            </if>
+            <if test=" params.weixiuyuanPhone != '' and params.weixiuyuanPhone != null and params.weixiuyuanPhone != 'null' ">
+                and weixiuyuan.weixiuyuan_phone like CONCAT('%',#{params.weixiuyuanPhone},'%')
+            </if>
+            <if test=" params.weixiuyuanIdNumber != '' and params.weixiuyuanIdNumber != null and params.weixiuyuanIdNumber != 'null' ">
+                and weixiuyuan.weixiuyuan_id_number like CONCAT('%',#{params.weixiuyuanIdNumber},'%')
+            </if>
+            <if test=" params.weixiuyuanEmail != '' and params.weixiuyuanEmail != null and params.weixiuyuanEmail != 'null' ">
+                and weixiuyuan.weixiuyuan_email like CONCAT('%',#{params.weixiuyuanEmail},'%')
+            </if>
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yonghu.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yonghu.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
